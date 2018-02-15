@@ -13,40 +13,38 @@ class TeamIndex(Enum):
 
 
 class HltvRequester:
-
     @staticmethod
     def get_parsed_page(url):
         return BeautifulSoup(requests.get(url).text, "lxml")
 
-    def get_matches(self):
+    def get_matches_count(self, days=3):
         page = self.get_parsed_page("{}matches".format(HLTV_URL))
-        matches_dates = page.find("div", {"class": "upcoming-matches"})
+        match_days = page.find_all("div", {"class": "match-day"})
+        if days > len(match_days):
+            days = len(match_days)
+        matches_count_in_day = []
+        for day_idx in range(days):
+            matches_count_in_day.append(len(match_days[day_idx].find_all("table", {"class": "table"})))
+        return matches_count_in_day
 
-        matches = []
-        for match_day in matches_dates.find_all("div", {"class": "match-day"}):
-
-            print()
-            print('Main loop start')
-            start = time.time()
-
-            date = match_day.find('span', {'class': 'standard-headline'}).text
-            match_link = match_day.find_all("a", {"class": "a-reset block upcoming-match standard-box"})
-            for idx, match in enumerate(match_day.find_all("table", {"class": "table"})):
-                new_match = {
-                    # 'match_link': match_link[idx]["href"],
-                    'date': date,
-                    'time': match.find("div", {"class", "time"}).text,
-                    'team1': match.find_all("div", {"class": "team"})[TeamIndex.TEAM_ONE.value].text,
-                    'team2': match.find_all("div", {"class": "team"})[TeamIndex.TEAM_TWO.value].text,
-                    'map': match.find("td", {"class": "star-cell"}).text.strip(),
-                    'event': match.find("td", {"class", "event"}).text,
-                    'last_matches': self.get_match_details(match_link[idx]["href"]),
-                }
-                matches.append(new_match)
-
-            end = time.time()
-            print('Main loop end = {}'.format(end - start))
-        return matches
+    def get_individual_match(self, match_day_idx, match_idx):
+        page = self.get_parsed_page("{}matches".format(HLTV_URL))
+        match_days = page.find_all("div", {"class": "match-day"})
+        date = match_days[match_day_idx].find('span', {'class': 'standard-headline'}).text
+        match_link = match_days[match_day_idx].find_all("a", {"class": "a-reset block upcoming-match standard-box"})
+        matches = match_days[match_day_idx].find_all("table", {"class": "table"})
+        match = {
+            'date': date,
+            'time': matches[match_idx].find("div", {"class", "time"}).text,
+            'team1': matches[match_idx].find_all("div", {"class": "team"})[TeamIndex.TEAM_ONE.value].text,
+            'team2': matches[match_idx].find_all("div", {"class": "team"})[TeamIndex.TEAM_TWO.value].text,
+            'map': matches[match_idx].find("td", {"class": "star-cell"}).text.strip(),
+            'event': matches[match_idx].find("td", {"class", "event"}).text,
+            'match_link': match_link,
+            #TODO check if it is better way to get match link
+            # 'last_matches': self.get_match_details(match_link[match_idx]["href"]),
+        }
+        return match
 
     @staticmethod
     def check_if_team1_won(match_info):

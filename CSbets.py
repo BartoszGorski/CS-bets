@@ -10,7 +10,6 @@ def main():
     app = QApplication(sys.argv)
     window = QMainWindow()
     WindowManager(window)
-    window.show()
     sys.exit(app.exec_())
 
 
