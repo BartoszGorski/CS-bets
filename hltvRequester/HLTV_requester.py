@@ -33,14 +33,15 @@ class HltvRequester:
         date = match_days[match_day_idx].find('span', {'class': 'standard-headline'}).text
         match_link = match_days[match_day_idx].find_all("a", {"class": "a-reset block upcoming-match standard-box"})
         matches = match_days[match_day_idx].find_all("table", {"class": "table"})
+        teams = matches[match_idx].find_all("div", {"class": "team"})
         match = {
             'date': date,
             'time': matches[match_idx].find("div", {"class", "time"}).text,
-            'team1': matches[match_idx].find_all("div", {"class": "team"})[TeamIndex.TEAM_ONE.value].text,
-            'team2': matches[match_idx].find_all("div", {"class": "team"})[TeamIndex.TEAM_TWO.value].text,
+            'team1': teams[TeamIndex.TEAM_ONE.value].text,
+            'team2': teams[TeamIndex.TEAM_TWO.value].text,
             'map': matches[match_idx].find("td", {"class": "star-cell"}).text.strip(),
             'event': matches[match_idx].find("td", {"class", "event"}).text,
-            'match_link': match_link,
+            'match_link': match_link[match_idx]["href"],
             #TODO check if it is better way to get match link
             # 'last_matches': self.get_match_details(match_link[match_idx]["href"]),
         }
@@ -85,25 +86,21 @@ class HltvRequester:
     def get_match_details(self, link):
         page = self.get_parsed_page('{}{}'.format(HLTV_URL, link))
 
-        start = time.time()
+        teams_logo = page.find_all('img', {'class': 'logo'})
+        team1_logo = teams_logo[TeamIndex.TEAM_ONE.value]['src']
+        team2_logo = teams_logo[TeamIndex.TEAM_TWO.value]['src']
+
         percentage_win_team_1 = page.find('div', {'class': 'pick-a-winner-team team1 canvote'}).find('div', {
             'class': 'percentage'}).text
         percentage_win_team_2 = page.find('div', {'class': 'pick-a-winner-team team2 canvote'}).find('div', {
             'class': 'percentage'}).text
-        end = time.time()
-        print('percentage = {}'.format(end - start))
 
-        start = time.time()
         last_matches = self.get_last_matches(page.find_all('table', {'class': 'table matches'}))
-        end = time.time()
-        print('last matches = {}'.format(end - start))
-
-        start = time.time()
         head_to_head = self.get_head_to_head_matches(page.find('div', {'class', 'head-to-head-listing'}))
-        end = time.time()
-        print('head to head = {}'.format(end - start))
 
         match_details = {
+            'team1_logo': team1_logo,
+            'team2_logo': team2_logo,
             'percentage_win_team_1': percentage_win_team_1,
             'percentage_win_team_2': percentage_win_team_2,
             'last_matches': last_matches,

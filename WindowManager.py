@@ -17,9 +17,9 @@ class WindowManager(Ui_MainWindow):
         matches_count_in_day = self.hltv.get_matches_count(days=3)
         for match_day_idx in range(len(matches_count_in_day)):
             for match_idx in range(matches_count_in_day[match_day_idx]):
-                self.matches_list.addItem(self.parse_match_dict_to_string(
-                        self.hltv.get_individual_match(match_day_idx, match_idx)
-                ))
+                match = self.hltv.get_individual_match(match_day_idx, match_idx)
+                self.matches.append(match)
+                self.matches_list.addItem(self.parse_match_dict_to_string(match))
 
     def parse_match_dict_to_string(self, match_dictionary):
         return "{} - {}\t{} vs {}\t{}\t{}".format(
@@ -27,3 +27,42 @@ class WindowManager(Ui_MainWindow):
             match_dictionary.get("team1"), match_dictionary.get("team2"),
             match_dictionary.get("map"), match_dictionary.get("event")
         )
+
+    def show_match_details(self):
+        list_row_index = self.matches_list.currentRow()
+        match_details = {}
+        try:
+            match_details = self.get_match_details(list_row_index)
+        except AttributeError:
+            error_msg = "Can not find all details about {} vs. {} match".format(
+                self.matches[list_row_index]["team1"], self.matches[list_row_index]["team2"]
+            )
+            self.statusbar.showMessage(error_msg, msecs=2000)
+
+        self.date_label.setText(self.matches[list_row_index]["date"])
+        self.t1_name_label.setText(self.matches[list_row_index]["team1"])
+        self.t2_name_label.setText(self.matches[list_row_index]["team2"])
+
+        if match_details:
+            url = self.matches[list_row_index]['match_details']['team1_logo']
+            self.set_team_logo(TeamIndex.TEAM_ONE, url)
+            url = self.matches[list_row_index]['match_details']['team2_logo']
+            self.set_team_logo(TeamIndex.TEAM_ONE, url)
+
+    def set_team_logo(self, team, url):
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        data = urlopen(req).read()
+        pixmap = QPixmap()
+        pixmap.loadFromData(data)
+        if team == TeamIndex.TEAM_ONE:
+            self.t1_image_label.setPixmap(pixmap)
+            self.t1_image_label.show()
+        elif team == TeamIndex.TEAM_TWO:
+            self.t2_image_label.setPixmap(pixmap)
+            self.t2_image_label.show()
+
+    def get_match_details(self, list_row_index):
+        match_link = self.matches[list_row_index]["match_link"]
+        match_details = self.hltv.get_match_details(match_link)
+        self.matches[list_row_index]['match_details'] = match_details
+        return match_details
