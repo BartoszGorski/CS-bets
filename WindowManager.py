@@ -57,7 +57,7 @@ class WindowManager(Ui_MainWindow):
             url = self.matches[list_row_index]['match_details']['team1_logo']
             self.set_team_logo(TeamIndex.TEAM_ONE, url)
             url = self.matches[list_row_index]['match_details']['team2_logo']
-            self.set_team_logo(TeamIndex.TEAM_ONE, url)
+            self.set_team_logo(TeamIndex.TEAM_TWO, url)
 
     def set_team_logo(self, team, url):
         req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})

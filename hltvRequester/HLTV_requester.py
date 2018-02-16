@@ -22,7 +22,7 @@ class HltvRequester:
             days = len(match_days)
         matches_count_in_day = []
         for day_idx in range(days):
-            matches_count_in_day.append(len(match_days[day_idx].find_all("table", {"class": "table"})))
+            matches_count_in_day.append(len(match_days[day_idx].find_all("td", {"class": "vs"})))
         return matches_count_in_day
 
     def get_individual_match(self, match_day_idx, match_idx):
