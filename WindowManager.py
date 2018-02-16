@@ -1,17 +1,27 @@
 import threading
+from PyQt5.QtGui import QPixmap
 
 from GUI.MainWindow import Ui_MainWindow
-from hltvRequester.HLTV_requester import HltvRequester
+from hltvRequester.HLTV_requester import HltvRequester, TeamIndex
+
+from urllib.request import Request, urlopen
 
 
 class WindowManager(Ui_MainWindow):
     def __init__(self, main_window):
         self.setupUi(main_window)
-        main_window.show()
+        self.setup_components()
         self.hltv = HltvRequester()
+        self.matches = []
+        self.download_matches()
 
+    def download_matches(self):
         t = threading.Thread(target=self.show_matches)
         t.start()
+
+    def setup_components(self):
+        self.t1_image_label.setScaledContents(True)
+        self.t2_image_label.setScaledContents(True)
 
     def show_matches(self):
         matches_count_in_day = self.hltv.get_matches_count(days=3)
