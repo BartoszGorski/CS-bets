@@ -2,8 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 from enum import Enum
 
-import time
-
 HLTV_URL = "http://www.hltv.org/"
 
 
