@@ -1,0 +1,4 @@
+.idea/
+GUI/__pycache__/
+__pycache__/
+hltvRequester/main.py
