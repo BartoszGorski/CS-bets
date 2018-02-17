@@ -11,10 +11,17 @@ from urllib.request import Request, urlopen
 class WindowManager(Ui_MainWindow):
     def __init__(self, main_window):
         self.setupUi(main_window)
+        self.center_window(main_window)
         self.setup_components()
         self.hltv = HltvRequester()
         self.matches = []
         self.download_matches()
+
+    def center_window(self, window):
+        frame_geometry = window.frameGeometry()
+        center_point = QtWidgets.QDesktopWidget().availableGeometry().center()
+        frame_geometry.moveCenter(center_point)
+        window.move(frame_geometry.topLeft())
 
     def download_matches(self):
         t = threading.Thread(target=self.show_matches)
