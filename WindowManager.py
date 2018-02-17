@@ -1,5 +1,6 @@
 import threading
 from PyQt5.QtGui import QPixmap
+from PyQt5 import QtWidgets
 
 from GUI.MainWindow import Ui_MainWindow
 from hltvRequester.HLTV_requester import HltvRequester, TeamIndex
