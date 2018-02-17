@@ -5,6 +5,7 @@ from PyQt5 import QtWidgets
 from GUI.MainWindow import Ui_MainWindow
 from hltvRequester.HLTV_requester import HltvRequester, TeamIndex
 from hltvRequester.HLTV_requester import MatchKey, MatchDetailsKey, PlayerDetails
+from hltvRequester.HLTV_requester import TEAMS_COUNT, TEAM_PLAYERS_COUNT
 
 from urllib.request import Request, urlopen
 
@@ -43,7 +44,7 @@ class WindowManager(Ui_MainWindow):
     def parse_match_dict_to_string(self, match_dictionary):
         return "{} - {}\t{} vs {}\t{}\t{}".format(
             match_dictionary.get(MatchKey.DATE.value), match_dictionary.get(MatchKey.TIME.value),
-            match_dictionary.get(MatchKey.TEAM1.value), match_dictionary.get(MatchKey.TEAM2.value),
+            match_dictionary.get(MatchKey.TEAM1_NAME.value), match_dictionary.get(MatchKey.TEAM2_NAME.value),
             match_dictionary.get(MatchKey.MAP.value), match_dictionary.get(MatchKey.EVENT.value)
         )
 
@@ -55,15 +56,15 @@ class WindowManager(Ui_MainWindow):
             match_details = self.get_match_details(list_row_index)
         except Exception:
             error_msg = "Can not find all details about {} vs. {} match".format(
-                self.matches[list_row_index][MatchKey.TEAM1.value],
-                self.matches[list_row_index][MatchKey.TEAM2.value]
+                self.matches[list_row_index][MatchKey.TEAM1_NAME.value],
+                self.matches[list_row_index][MatchKey.TEAM2_NAME.value]
             )
             self.statusbar.showMessage(error_msg, msecs=2000)
 
         self.date_label.setText(self.matches[list_row_index][MatchKey.DATE.value])
         self.time_label.setText(self.matches[list_row_index][MatchKey.TIME.value])
-        self.t1_name_label.setText(self.matches[list_row_index][MatchKey.TEAM1.value])
-        self.t2_name_label.setText(self.matches[list_row_index][MatchKey.TEAM2.value])
+        self.t1_name_label.setText(self.matches[list_row_index][MatchKey.TEAM1_NAME.value])
+        self.t2_name_label.setText(self.matches[list_row_index][MatchKey.TEAM2_NAME.value])
 
         if match_details:
             self.t1_percentage.setText(self.matches[list_row_index][MatchKey.MATCH_DETAILS.value][
@@ -77,11 +78,9 @@ class WindowManager(Ui_MainWindow):
                 MatchDetailsKey.LOGO_TEAM2.value]
             self.set_team_logo(TeamIndex.TEAM_TWO, url)
 
-            teams_count = 2
-            players_count = 5
-            for team_index in range(teams_count):
-                for player_index in range(players_count):
-                    self.get_player_label(TeamIndex.TEAM_ONE.value+1, player_index+1).setText(
+            for team_index in range(TEAMS_COUNT):
+                for player_index in range(TEAM_PLAYERS_COUNT):
+                    self.get_player_label(team_index+1, player_index+1).setText(
                         self.matches[list_row_index]
                         [MatchKey.MATCH_DETAILS.value]
                         [MatchDetailsKey.PLAYERS_TEAMS.value]

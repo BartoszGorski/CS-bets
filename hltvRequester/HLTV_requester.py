@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 from enum import Enum
 
 HLTV_URL = "http://www.hltv.org/"
+TEAMS_COUNT = 2
+TEAM_PLAYERS_COUNT = 5
 
 
 class TeamIndex(Enum):
@@ -13,8 +15,8 @@ class TeamIndex(Enum):
 class MatchKey(Enum):
     DATE = 'date'
     TIME = 'time'
-    TEAM1 = 'team1'
-    TEAM2 = 'team2'
+    TEAM1_NAME = 'team1'
+    TEAM2_NAME = 'team2'
     MAP = 'map'
     EVENT = 'event'
     MATCH_LINK = 'match_link'
@@ -73,8 +75,8 @@ class HltvRequester:
             new_match = {
                 MatchKey.DATE.value: date,
                 MatchKey.TIME.value: match.find("div", {"class", "time"}).text,
-                MatchKey.TEAM1.value: teams[TeamIndex.TEAM_ONE.value].text,
-                MatchKey.TEAM2.value: teams[TeamIndex.TEAM_TWO.value].text,
+                MatchKey.TEAM1_NAME.value: teams[TeamIndex.TEAM_ONE.value].text,
+                MatchKey.TEAM2_NAME.value: teams[TeamIndex.TEAM_TWO.value].text,
                 MatchKey.MAP.value: match.find("td", {"class": "star-cell"}).text.strip(),
                 MatchKey.EVENT.value: match.find("td", {"class", "event"}).text,
                 MatchKey.MATCH_LINK.value: match_link[idx]["href"],
@@ -121,14 +123,12 @@ class HltvRequester:
         return matches
 
     def get_players(self, lineups):
-        players_nicks_index_on_page = 5
-        players_count_on_page = 10
-        teams_count = 2
+        players_nicks_count_on_page = 10
         team_players = []
-        for team in range(teams_count):
+        for team in range(TEAMS_COUNT):
             players = []
             players_td = lineups[team].find_all('td', {'class': 'player'})
-            for player_index in range(players_nicks_index_on_page, players_count_on_page):
+            for player_index in range(TEAM_PLAYERS_COUNT, players_nicks_count_on_page):
                 player_link = players_td[player_index].find('a')
                 new_player = {
                     PlayerDetails.PAGE_LINK.value: player_link['href'] if player_link else "Player does not have page",
