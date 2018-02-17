@@ -29,6 +29,12 @@ class MatchDetailsKey(Enum):
     LOGO_TEAM2 = 'team2_logo'
     LAST_MATCHES = 'last_matches'
     HEAD_2_HEAD = 'head_to_head'
+    PLAYERS_TEAMS = 'players_teams'
+
+
+class PlayerDetails(Enum):
+    NICK = 'nick'
+    PAGE_LINK = 'page'
 
 
 class HltvRequester:
@@ -114,12 +120,32 @@ class HltvRequester:
             matches.append(new_match)
         return matches
 
+    def get_players(self, lineups):
+        players_nicks_index_on_page = 5
+        players_count_on_page = 10
+        teams_count = 2
+        team_players = []
+        for team in range(teams_count):
+            players = []
+            players_td = lineups[team].find_all('td', {'class': 'player'})
+            for player_index in range(players_nicks_index_on_page, players_count_on_page):
+                player_link = players_td[player_index].find('a')
+                new_player = {
+                    PlayerDetails.PAGE_LINK.value: player_link['href'] if player_link else "Player does not have page",
+                    PlayerDetails.NICK.value: players_td[player_index].find('div', {'class': 'text-ellipsis'}).text,
+                }
+                players.append(new_player)
+            team_players.append(players)
+        return team_players
+
     def get_match_details(self, link):
         page = self.get_parsed_page('{}{}'.format(HLTV_URL, link))
 
         teams_logo = page.find_all('img', {'class': 'logo'})
         team1_logo = teams_logo[TeamIndex.TEAM_ONE.value]['src']
         team2_logo = teams_logo[TeamIndex.TEAM_TWO.value]['src']
+        lineups = page.find_all('div', {'class': 'lineup standard-box'})
+        team_players = self.get_players(lineups)
 
         percentage_win_team_1 = page\
             .find('div', {'class': 'pick-a-winner-team team1 canvote'})\
@@ -138,6 +164,7 @@ class HltvRequester:
             MatchDetailsKey.PERCENTAGE_TEAM2.value: percentage_win_team_2,
             MatchDetailsKey.LAST_MATCHES.value: last_matches,
             MatchDetailsKey.HEAD_2_HEAD.value: head_to_head,
+            MatchDetailsKey.PLAYERS_TEAMS.value: team_players,
         }
         return match_details
 

@@ -3,7 +3,8 @@ from PyQt5.QtGui import QPixmap
 from PyQt5 import QtWidgets
 
 from GUI.MainWindow import Ui_MainWindow
-from hltvRequester.HLTV_requester import HltvRequester, TeamIndex, MatchKey, MatchDetailsKey
+from hltvRequester.HLTV_requester import HltvRequester, TeamIndex
+from hltvRequester.HLTV_requester import MatchKey, MatchDetailsKey, PlayerDetails
 
 from urllib.request import Request, urlopen
 
@@ -52,7 +53,7 @@ class WindowManager(Ui_MainWindow):
         match_details = {}
         try:
             match_details = self.get_match_details(list_row_index)
-        except AttributeError:
+        except Exception:
             error_msg = "Can not find all details about {} vs. {} match".format(
                 self.matches[list_row_index][MatchKey.TEAM1.value],
                 self.matches[list_row_index][MatchKey.TEAM2.value]
@@ -75,6 +76,33 @@ class WindowManager(Ui_MainWindow):
             url = self.matches[list_row_index][MatchKey.MATCH_DETAILS.value][
                 MatchDetailsKey.LOGO_TEAM2.value]
             self.set_team_logo(TeamIndex.TEAM_TWO, url)
+
+            teams_count = 2
+            players_count = 5
+            for team_index in range(teams_count):
+                for player_index in range(players_count):
+                    self.get_player_label(TeamIndex.TEAM_ONE.value+1, player_index+1).setText(
+                        self.matches[list_row_index]
+                        [MatchKey.MATCH_DETAILS.value]
+                        [MatchDetailsKey.PLAYERS_TEAMS.value]
+                        [team_index]
+                        [player_index]
+                        [PlayerDetails.NICK.value])
+
+    def get_player_label(self, team, player):
+        labels = {
+            "t1_p1": self.t1_p1,
+            "t1_p2": self.t1_p2,
+            "t1_p3": self.t1_p3,
+            "t1_p4": self.t1_p4,
+            "t1_p5": self.t1_p5,
+            "t2_p1": self.t2_p1,
+            "t2_p2": self.t2_p2,
+            "t2_p3": self.t2_p3,
+            "t2_p4": self.t2_p4,
+            "t2_p5": self.t2_p5,
+        }
+        return labels["t{}_p{}".format(team, player)]
 
     def set_team_logo(self, team, url):
         req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
