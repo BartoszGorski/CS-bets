@@ -47,6 +47,7 @@ class WindowManager(Ui_MainWindow):
         )
 
     def show_match_details(self):
+        self.statusbar.showMessage("loading data...", msecs=2000)
         list_row_index = self.matches_list.currentRow()
         match_details = {}
         try:
@@ -62,6 +63,8 @@ class WindowManager(Ui_MainWindow):
         self.t2_name_label.setText(self.matches[list_row_index]["team2"])
 
         if match_details:
+            self.t1_percentage.setText(self.matches[list_row_index]['match_details']['percentage_win_team_1'])
+            self.t2_percentage.setText(self.matches[list_row_index]['match_details']['percentage_win_team_2'])
             url = self.matches[list_row_index]['match_details']['team1_logo']
             self.set_team_logo(TeamIndex.TEAM_ONE, url)
             url = self.matches[list_row_index]['match_details']['team2_logo']
