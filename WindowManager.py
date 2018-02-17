@@ -44,7 +44,8 @@ class WindowManager(Ui_MainWindow):
     def parse_match_dict_to_string(self, match_dictionary):
         return "{} - {}\t{} vs {}\t{}\t{}".format(
             match_dictionary.get(MatchKey.DATE.value), match_dictionary.get(MatchKey.TIME.value),
-            match_dictionary.get(MatchKey.TEAM1_NAME.value), match_dictionary.get(MatchKey.TEAM2_NAME.value),
+            match_dictionary.get(MatchKey.TEAM1_NAME.value),
+            match_dictionary.get(MatchKey.TEAM2_NAME.value),
             match_dictionary.get(MatchKey.MAP.value), match_dictionary.get(MatchKey.EVENT.value)
         )
 
@@ -80,7 +81,7 @@ class WindowManager(Ui_MainWindow):
 
             for team_index in range(TEAMS_COUNT):
                 for player_index in range(TEAM_PLAYERS_COUNT):
-                    self.get_player_label(team_index+1, player_index+1).setText(
+                    self.get_player_label(team_index + 1, player_index + 1).setText(
                         self.matches[list_row_index]
                         [MatchKey.MATCH_DETAILS.value]
                         [MatchDetailsKey.PLAYERS_TEAMS.value]

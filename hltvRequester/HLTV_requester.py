@@ -60,15 +60,18 @@ class HltvRequester:
             days = length_match_days
         matches_count_in_day = []
         for day_idx in range(days):
-            matches_count_in_day.append(len(self.match_days[day_idx].find_all("td", {"class": "vs"})))
+            matches_count_in_day.append(
+                len(self.match_days[day_idx].find_all("td", {"class": "vs"})))
         return matches_count_in_day
 
     def get_matches_of_day(self, match_day_idx):
         matches = []
         date = self.match_days[match_day_idx].find('span', {'class': 'standard-headline'}).text
-        match_link = self.match_days[match_day_idx].find_all("a", {"class": "a-reset block upcoming-match standard-box"})
+        match_link = self.match_days[match_day_idx].find_all(
+            "a", {"class": "a-reset block upcoming-match standard-box"})
 
-        for idx, match in enumerate(self.match_days[match_day_idx].find_all("table", {"class": "table"})):
+        for idx, match in enumerate(
+                self.match_days[match_day_idx].find_all("table", {"class": "table"})):
             teams = match.find_all("div", {"class": "team"})
             if not teams:
                 continue
@@ -80,7 +83,7 @@ class HltvRequester:
                 MatchKey.MAP.value: match.find("td", {"class": "star-cell"}).text.strip(),
                 MatchKey.EVENT.value: match.find("td", {"class", "event"}).text,
                 MatchKey.MATCH_LINK.value: match_link[idx]["href"],
-                #TODO check if it is better way to get match link
+                # TODO check if it is better way to get match link
                 # 'last_matches': self.get_match_details(match_link[match_idx]["href"]),
             }
             matches.append(new_match)
@@ -131,8 +134,10 @@ class HltvRequester:
             for player_index in range(TEAM_PLAYERS_COUNT, players_nicks_count_on_page):
                 player_link = players_td[player_index].find('a')
                 new_player = {
-                    PlayerDetails.PAGE_LINK.value: player_link['href'] if player_link else "Player does not have page",
-                    PlayerDetails.NICK.value: players_td[player_index].find('div', {'class': 'text-ellipsis'}).text,
+                    PlayerDetails.PAGE_LINK.value:
+                        player_link['href'] if player_link else "Player does not have page",
+                    PlayerDetails.NICK.value: players_td[player_index].find(
+                        'div', {'class': 'text-ellipsis'}).text,
                 }
                 players.append(new_player)
             team_players.append(players)
@@ -147,15 +152,16 @@ class HltvRequester:
         lineups = page.find_all('div', {'class': 'lineup standard-box'})
         team_players = self.get_players(lineups)
 
-        percentage_win_team_1 = page\
-            .find('div', {'class': 'pick-a-winner-team team1 canvote'})\
+        percentage_win_team_1 = page \
+            .find('div', {'class': 'pick-a-winner-team team1 canvote'}) \
             .find('div', {'class': 'percentage'}).text
-        percentage_win_team_2 = page\
-            .find('div', {'class': 'pick-a-winner-team team2 canvote'})\
+        percentage_win_team_2 = page \
+            .find('div', {'class': 'pick-a-winner-team team2 canvote'}) \
             .find('div', {'class': 'percentage'}).text
 
         last_matches = self.get_last_matches(page.find_all('table', {'class': 'table matches'}))
-        head_to_head = self.get_head_to_head_matches(page.find('div', {'class', 'head-to-head-listing'}))
+        head_to_head = self.get_head_to_head_matches(
+            page.find('div', {'class', 'head-to-head-listing'}))
 
         match_details = {
             MatchDetailsKey.LOGO_TEAM1.value: team1_logo,
@@ -179,12 +185,14 @@ class HltvRequester:
             for match in matches_one_date.find_all('div', {'class': 'result-con'}):
                 new_match = {
                     'head-line': standard_headline,
-                    'team1': match.find('div', {'class': 'team1'}).find('div', {'class': 'team'}).text,
-                    'team2': match.find('div', {'class': 'team2'}).find('div', {'class': 'team'}).text,
-                    'team1-score': match.find('td', {'class': 'result-score'}).find_all('span')[
-                        TeamIndex.TEAM_ONE.value].text,
-                    'team2-score': match.find('td', {'class': 'result-score'}).find_all('span')[
-                        TeamIndex.TEAM_TWO.value].text,
+                    'team1': match.find('div', {'class': 'team1'})
+                        .find('div', {'class': 'team'}).text,
+                    'team2': match.find('div', {'class': 'team2'})
+                        .find('div', {'class': 'team'}).text,
+                    'team1-score': match.find('td', {'class': 'result-score'})
+                        .find_all('span')[TeamIndex.TEAM_ONE.value].text,
+                    'team2-score': match.find('td', {'class': 'result-score'})
+                        .find_all('span')[TeamIndex.TEAM_TWO.value].text,
                     'event': match.find('span', {'class': 'event-name'}).text
                 }
                 matches_list.append(new_match)
