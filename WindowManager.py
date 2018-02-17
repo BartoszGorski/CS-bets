@@ -3,7 +3,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5 import QtWidgets
 
 from GUI.MainWindow import Ui_MainWindow
-from hltvRequester.HLTV_requester import HltvRequester, TeamIndex
+from hltvRequester.HLTV_requester import HltvRequester, TeamIndex, MatchKey, MatchDetailsKey
 
 from urllib.request import Request, urlopen
 
@@ -41,9 +41,9 @@ class WindowManager(Ui_MainWindow):
 
     def parse_match_dict_to_string(self, match_dictionary):
         return "{} - {}\t{} vs {}\t{}\t{}".format(
-            match_dictionary.get("date"), match_dictionary.get("time"),
-            match_dictionary.get("team1"), match_dictionary.get("team2"),
-            match_dictionary.get("map"), match_dictionary.get("event")
+            match_dictionary.get(MatchKey.DATE.value), match_dictionary.get(MatchKey.TIME.value),
+            match_dictionary.get(MatchKey.TEAM1.value), match_dictionary.get(MatchKey.TEAM2.value),
+            match_dictionary.get(MatchKey.MAP.value), match_dictionary.get(MatchKey.EVENT.value)
         )
 
     def show_match_details(self):
@@ -54,20 +54,26 @@ class WindowManager(Ui_MainWindow):
             match_details = self.get_match_details(list_row_index)
         except AttributeError:
             error_msg = "Can not find all details about {} vs. {} match".format(
-                self.matches[list_row_index]["team1"], self.matches[list_row_index]["team2"]
+                self.matches[list_row_index][MatchKey.TEAM1.value],
+                self.matches[list_row_index][MatchKey.TEAM2.value]
             )
             self.statusbar.showMessage(error_msg, msecs=2000)
 
-        self.date_label.setText(self.matches[list_row_index]["date"])
-        self.t1_name_label.setText(self.matches[list_row_index]["team1"])
-        self.t2_name_label.setText(self.matches[list_row_index]["team2"])
+        self.date_label.setText(self.matches[list_row_index][MatchKey.DATE.value])
+        self.time_label.setText(self.matches[list_row_index][MatchKey.TIME.value])
+        self.t1_name_label.setText(self.matches[list_row_index][MatchKey.TEAM1.value])
+        self.t2_name_label.setText(self.matches[list_row_index][MatchKey.TEAM2.value])
 
         if match_details:
-            self.t1_percentage.setText(self.matches[list_row_index]['match_details']['percentage_win_team_1'])
-            self.t2_percentage.setText(self.matches[list_row_index]['match_details']['percentage_win_team_2'])
-            url = self.matches[list_row_index]['match_details']['team1_logo']
+            self.t1_percentage.setText(self.matches[list_row_index][MatchKey.MATCH_DETAILS.value][
+                                           MatchDetailsKey.PERCENTAGE_TEAM1.value])
+            self.t2_percentage.setText(self.matches[list_row_index][MatchKey.MATCH_DETAILS.value][
+                                           MatchDetailsKey.PERCENTAGE_TEAM2.value])
+            url = self.matches[list_row_index][MatchKey.MATCH_DETAILS.value][
+                MatchDetailsKey.LOGO_TEAM1.value]
             self.set_team_logo(TeamIndex.TEAM_ONE, url)
-            url = self.matches[list_row_index]['match_details']['team2_logo']
+            url = self.matches[list_row_index][MatchKey.MATCH_DETAILS.value][
+                MatchDetailsKey.LOGO_TEAM2.value]
             self.set_team_logo(TeamIndex.TEAM_TWO, url)
 
     def set_team_logo(self, team, url):
@@ -83,7 +89,7 @@ class WindowManager(Ui_MainWindow):
             self.t2_image_label.show()
 
     def get_match_details(self, list_row_index):
-        match_link = self.matches[list_row_index]["match_link"]
+        match_link = self.matches[list_row_index][MatchKey.MATCH_LINK.value]
         match_details = self.hltv.get_match_details(match_link)
-        self.matches[list_row_index]['match_details'] = match_details
+        self.matches[list_row_index][MatchKey.MATCH_DETAILS.value] = match_details
         return match_details

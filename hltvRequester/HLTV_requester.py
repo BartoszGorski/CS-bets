@@ -10,6 +10,27 @@ class TeamIndex(Enum):
     TEAM_TWO = 1
 
 
+class MatchKey(Enum):
+    DATE = 'date'
+    TIME = 'time'
+    TEAM1 = 'team1'
+    TEAM2 = 'team2'
+    MAP = 'map'
+    EVENT = 'event'
+    MATCH_LINK = 'match_link'
+    MATCH_DETAILS = 'match_details'
+
+
+class MatchDetailsKey(Enum):
+    RESULT = 'result'
+    PERCENTAGE_TEAM1 = 'percentage_win_team_1'
+    PERCENTAGE_TEAM2 = 'percentage_win_team_2'
+    LOGO_TEAM1 = 'team1_logo'
+    LOGO_TEAM2 = 'team2_logo'
+    LAST_MATCHES = 'last_matches'
+    HEAD_2_HEAD = 'head_to_head'
+
+
 class HltvRequester:
     def __init__(self):
         self.page_matches = None
@@ -44,13 +65,13 @@ class HltvRequester:
             if not teams:
                 continue
             new_match = {
-                'date': date,
-                'time': match.find("div", {"class", "time"}).text,
-                'team1': teams[TeamIndex.TEAM_ONE.value].text,
-                'team2': teams[TeamIndex.TEAM_TWO.value].text,
-                'map': match.find("td", {"class": "star-cell"}).text.strip(),
-                'event': match.find("td", {"class", "event"}).text,
-                'match_link': match_link[idx]["href"],
+                MatchKey.DATE.value: date,
+                MatchKey.TIME.value: match.find("div", {"class", "time"}).text,
+                MatchKey.TEAM1.value: teams[TeamIndex.TEAM_ONE.value].text,
+                MatchKey.TEAM2.value: teams[TeamIndex.TEAM_TWO.value].text,
+                MatchKey.MAP.value: match.find("td", {"class": "star-cell"}).text.strip(),
+                MatchKey.EVENT.value: match.find("td", {"class", "event"}).text,
+                MatchKey.MATCH_LINK.value: match_link[idx]["href"],
                 #TODO check if it is better way to get match link
                 # 'last_matches': self.get_match_details(match_link[match_idx]["href"]),
             }
@@ -84,11 +105,11 @@ class HltvRequester:
         matches = []
         for match in head_to_head.find_all('tr', {'class': 'row'}):
             new_match = {
-                'date': match.find('td', {'class': 'date'}).text,
+                # 'date': match.find('td', {'class': 'date'}).text,
                 # 'team1': match.find('td', {'class': 'team1'}).text.strip(),
                 # 'team2': match.find('td', {'class': 'team2'}).text.strip(),
                 # 'event': match.find('td', {'class': 'event'}).text,
-                'result': match.find('td', {'class': 'result'}).text,
+                MatchDetailsKey.RESULT.value: match.find('td', {'class': 'result'}).text,
             }
             matches.append(new_match)
         return matches
@@ -100,21 +121,23 @@ class HltvRequester:
         team1_logo = teams_logo[TeamIndex.TEAM_ONE.value]['src']
         team2_logo = teams_logo[TeamIndex.TEAM_TWO.value]['src']
 
-        percentage_win_team_1 = page.find('div', {'class': 'pick-a-winner-team team1 canvote'}).find('div', {
-            'class': 'percentage'}).text
-        percentage_win_team_2 = page.find('div', {'class': 'pick-a-winner-team team2 canvote'}).find('div', {
-            'class': 'percentage'}).text
+        percentage_win_team_1 = page\
+            .find('div', {'class': 'pick-a-winner-team team1 canvote'})\
+            .find('div', {'class': 'percentage'}).text
+        percentage_win_team_2 = page\
+            .find('div', {'class': 'pick-a-winner-team team2 canvote'})\
+            .find('div', {'class': 'percentage'}).text
 
         last_matches = self.get_last_matches(page.find_all('table', {'class': 'table matches'}))
         head_to_head = self.get_head_to_head_matches(page.find('div', {'class', 'head-to-head-listing'}))
 
         match_details = {
-            'team1_logo': team1_logo,
-            'team2_logo': team2_logo,
-            'percentage_win_team_1': percentage_win_team_1,
-            'percentage_win_team_2': percentage_win_team_2,
-            'last_matches': last_matches,
-            'head_to_head': head_to_head,
+            MatchDetailsKey.LOGO_TEAM1.value: team1_logo,
+            MatchDetailsKey.LOGO_TEAM2.value: team2_logo,
+            MatchDetailsKey.PERCENTAGE_TEAM1.value: percentage_win_team_1,
+            MatchDetailsKey.PERCENTAGE_TEAM2.value: percentage_win_team_2,
+            MatchDetailsKey.LAST_MATCHES.value: last_matches,
+            MatchDetailsKey.HEAD_2_HEAD.value: head_to_head,
         }
         return match_details
 
