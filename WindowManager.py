@@ -23,9 +23,8 @@ class WindowManager(Ui_MainWindow):
         self.t1_image_label.setScaledContents(True)
         self.t2_image_label.setScaledContents(True)
 
-    def show_matches(self):
-        matches_count_in_day = self.hltv.get_matches_count(days=3)
-        for match_day_idx in range(len(matches_count_in_day)):
+    def show_matches(self, match_days=3):
+        for match_day_idx in range(match_days):
             matches = self.hltv.get_matches_of_day(match_day_idx)
             self.matches.extend(matches)
 
