@@ -23,13 +23,13 @@ class WindowManager(Ui_MainWindow):
         self.t1_image_label.setScaledContents(True)
         self.t2_image_label.setScaledContents(True)
 
-    def show_matches(self):
-        matches_count_in_day = self.hltv.get_matches_count(days=3)
-        for match_day_idx in range(len(matches_count_in_day)):
-            for match_idx in range(matches_count_in_day[match_day_idx]):
-                match = self.hltv.get_individual_match(match_day_idx, match_idx)
-                self.matches.append(match)
-                self.matches_list.addItem(self.parse_match_dict_to_string(match))
+    def show_matches(self, match_days=3):
+        for match_day_idx in range(match_days):
+            matches = self.hltv.get_matches_of_day(match_day_idx)
+            self.matches.extend(matches)
+
+        for match in self.matches:
+            self.matches_list.addItem(self.parse_match_dict_to_string(match))
 
     def parse_match_dict_to_string(self, match_dictionary):
         return "{} - {}\t{} vs {}\t{}\t{}".format(
