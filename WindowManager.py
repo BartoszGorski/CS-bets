@@ -1,8 +1,11 @@
 import threading
 from PyQt5.QtGui import QPixmap
+from PyQt5 import QtWidgets
 
 from GUI.MainWindow import Ui_MainWindow
 from hltvRequester.HLTV_requester import HltvRequester, TeamIndex
+from hltvRequester.HLTV_requester import MatchKey, MatchDetailsKey, PlayerDetails
+from hltvRequester.HLTV_requester import TEAMS_COUNT, TEAM_PLAYERS_COUNT
 
 from urllib.request import Request, urlopen
 
@@ -10,10 +13,17 @@ from urllib.request import Request, urlopen
 class WindowManager(Ui_MainWindow):
     def __init__(self, main_window):
         self.setupUi(main_window)
+        self.center_window(main_window)
         self.setup_components()
         self.hltv = HltvRequester()
         self.matches = []
         self.download_matches()
+
+    def center_window(self, window):
+        frame_geometry = window.frameGeometry()
+        center_point = QtWidgets.QDesktopWidget().availableGeometry().center()
+        frame_geometry.moveCenter(center_point)
+        window.move(frame_geometry.topLeft())
 
     def download_matches(self):
         t = threading.Thread(target=self.show_matches)
@@ -33,31 +43,66 @@ class WindowManager(Ui_MainWindow):
 
     def parse_match_dict_to_string(self, match_dictionary):
         return "{} - {}\t{} vs {}\t{}\t{}".format(
-            match_dictionary.get("date"), match_dictionary.get("time"),
-            match_dictionary.get("team1"), match_dictionary.get("team2"),
-            match_dictionary.get("map"), match_dictionary.get("event")
+            match_dictionary.get(MatchKey.DATE.value), match_dictionary.get(MatchKey.TIME.value),
+            match_dictionary.get(MatchKey.TEAM1_NAME.value),
+            match_dictionary.get(MatchKey.TEAM2_NAME.value),
+            match_dictionary.get(MatchKey.MAP.value), match_dictionary.get(MatchKey.EVENT.value)
         )
 
     def show_match_details(self):
+        self.statusbar.showMessage("loading data...", msecs=2000)
         list_row_index = self.matches_list.currentRow()
         match_details = {}
         try:
             match_details = self.get_match_details(list_row_index)
-        except AttributeError:
+        except Exception:
             error_msg = "Can not find all details about {} vs. {} match".format(
-                self.matches[list_row_index]["team1"], self.matches[list_row_index]["team2"]
+                self.matches[list_row_index][MatchKey.TEAM1_NAME.value],
+                self.matches[list_row_index][MatchKey.TEAM2_NAME.value]
             )
             self.statusbar.showMessage(error_msg, msecs=2000)
 
-        self.date_label.setText(self.matches[list_row_index]["date"])
-        self.t1_name_label.setText(self.matches[list_row_index]["team1"])
-        self.t2_name_label.setText(self.matches[list_row_index]["team2"])
+        self.date_label.setText(self.matches[list_row_index][MatchKey.DATE.value])
+        self.time_label.setText(self.matches[list_row_index][MatchKey.TIME.value])
+        self.t1_name_label.setText(self.matches[list_row_index][MatchKey.TEAM1_NAME.value])
+        self.t2_name_label.setText(self.matches[list_row_index][MatchKey.TEAM2_NAME.value])
 
         if match_details:
-            url = self.matches[list_row_index]['match_details']['team1_logo']
+            self.t1_percentage.setText(self.matches[list_row_index][MatchKey.MATCH_DETAILS.value][
+                                           MatchDetailsKey.PERCENTAGE_TEAM1.value])
+            self.t2_percentage.setText(self.matches[list_row_index][MatchKey.MATCH_DETAILS.value][
+                                           MatchDetailsKey.PERCENTAGE_TEAM2.value])
+            url = self.matches[list_row_index][MatchKey.MATCH_DETAILS.value][
+                MatchDetailsKey.LOGO_TEAM1.value]
             self.set_team_logo(TeamIndex.TEAM_ONE, url)
-            url = self.matches[list_row_index]['match_details']['team2_logo']
+            url = self.matches[list_row_index][MatchKey.MATCH_DETAILS.value][
+                MatchDetailsKey.LOGO_TEAM2.value]
             self.set_team_logo(TeamIndex.TEAM_TWO, url)
+
+            for team_index in range(TEAMS_COUNT):
+                for player_index in range(TEAM_PLAYERS_COUNT):
+                    self.get_player_label(team_index + 1, player_index + 1).setText(
+                        self.matches[list_row_index]
+                        [MatchKey.MATCH_DETAILS.value]
+                        [MatchDetailsKey.PLAYERS_TEAMS.value]
+                        [team_index]
+                        [player_index]
+                        [PlayerDetails.NICK.value])
+
+    def get_player_label(self, team, player):
+        labels = {
+            "t1_p1": self.t1_p1,
+            "t1_p2": self.t1_p2,
+            "t1_p3": self.t1_p3,
+            "t1_p4": self.t1_p4,
+            "t1_p5": self.t1_p5,
+            "t2_p1": self.t2_p1,
+            "t2_p2": self.t2_p2,
+            "t2_p3": self.t2_p3,
+            "t2_p4": self.t2_p4,
+            "t2_p5": self.t2_p5,
+        }
+        return labels["t{}_p{}".format(team, player)]
 
     def set_team_logo(self, team, url):
         req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -72,7 +117,7 @@ class WindowManager(Ui_MainWindow):
             self.t2_image_label.show()
 
     def get_match_details(self, list_row_index):
-        match_link = self.matches[list_row_index]["match_link"]
+        match_link = self.matches[list_row_index][MatchKey.MATCH_LINK.value]
         match_details = self.hltv.get_match_details(match_link)
-        self.matches[list_row_index]['match_details'] = match_details
+        self.matches[list_row_index][MatchKey.MATCH_DETAILS.value] = match_details
         return match_details
